@@ -14,7 +14,7 @@ const allowedCommands = "<>+-.,[]#";
 // The commands that can be used by the program.
 
 const pointerConstant = false;
-// If false, the pointer will be reset to 0 every time a new program begins.
+// If false, the pointer will be reset to 0 every time a new loop begins.
 // If true, it will remain constant.
 
 const backgroundColor = "#fff";
