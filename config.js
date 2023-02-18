@@ -25,7 +25,7 @@ const speed = 1;
 // How many milliseconds to wait in between each loop.
 
 const arrayLength = 80;
-// How many milliseconds to wait in between each loop.
+// How long the memory array should be (in bytes)
 
 //#########################################################################################//
 //#########################################################################################//
