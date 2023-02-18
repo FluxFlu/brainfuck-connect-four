@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Connect Four</title>
+	<style>
+		p {
+			position: absolute;
+			top: 0;
+			left: 0;
+			margin: 0;
+			padding: 0;
+			font-size: 3vw;
+			font-family: monospace;
+		}
+		
+	</style>
+</head>
+
+<body id="body">
+	<p id="out"></p>
+	<script src="./config.js"></script>
+	<script src="./setup.js"></script>
+	<script src="./loop.js"></script>
+	<script>
+		/*
+
+		>	Increment pointer
+		<	Decrement pointer
+		+	Increment value at pointer
+		-	Decrement value at pointer
+		[	Begin loop. Continues while value at pointer is not zero. Checks before loop, not after.
+		]	End loop
+		,	Get value at pointer. If that keycode input is pressed, set the value at pointer to 1. Else, set it to 0.
+		.	Print value at pointer to html as character (based on ascii).
+		#	Display debugging info.
+		*/
+
+		const keys = [];
+		const keysUp = [];
+        window.addEventListener('keydown', keyPress, false);
+        window.addEventListener('keyup', keyUnPress, false);
+		function keyPress(e) {
+			keys[e.keyCode] = true;
+			if (keysUp[e.keyCode] && inputStyle == "press")
+				keys[e.keyCode] = false;
+			keysUp[e.keyCode] = true;
+		}
+		function keyUnPress(e) {
+			keys[e.keyCode] = false;
+			keysUp[e.keyCode] = false;
+		}
+		function get(i) { return document.getElementById(i); }
+
+		get('body').style.backgroundColor = backgroundColor;
+		get('out').style.color = textColor;
+
+		const possibles = allowedCommands;
+		const folds = "<>+-#";
+		let r = new Uint8Array(arrayLength);
+		let pointer = 0;
+		
+		function collectInput(r, p) {
+			r[p] = keys[r[p]] ? 1 : 0;
+		}
+
+		function run(num, input) {
+			let output = "";
+			const nRay = [];
+			input = input.split('').filter(e => possibles.includes(e)).join('');
+			if ([].concat(input.match(/\[/g)).join('').length != [].concat(input.match(/\]/g)).join('').length)
+				console.error("Unbalanced parenthesis.");
+			let i = 0;
+			if (!pointerConstant) pointer = 0;
+			for (let m = 0; m < input.length; m++) {
+				if (!folds.includes(input[m])) continue;
+				let n = 1;
+				while (input[m] == input[m + 1]) { input = input.split(""); input.splice(m + 1, 1); input = input.join(''); n++; }
+				if (n == 1) continue;
+				nRay[m] = n;
+			}
+			let p = pointer;
+			input = input.split('');
+			let debugCount = 0;
+			for (let x = 0 + num; x < input.length; x++) {
+				let e = input[x];
+				let n = nRay[x];
+				if (!n || isNaN(n)) n = 1;
+				switch (e) {
+					case ">":
+						p += n;
+						break;
+					case "<":
+						p -= n;
+						if (p < 0) p = 0;
+						break;
+					case "+":
+						r[p] += n;
+						break;
+					case "-":
+						r[p] -= n;
+						break;
+					case "#":
+						debugCount++;
+						console.info(debugCount + "th debug call:");
+						console.info(p);
+						const ray = Array.from(r).map((e, arg) => {return arg == p ? `%_${e}_%`: e})
+						console.info("[" + ray.join(", ") + "]");
+						break;
+					case ".":
+						output += String.fromCharCode(r[p]);
+						break;
+					case ",":
+						collectInput(r, p);
+						break;
+					case "[":
+						let pont = 0;
+						let counter = x;
+						if (r[p] == 0) {
+							while (counter < input.length) {
+								if (input[counter] == "[") pont++;
+								if (input[counter] == "]") pont--;
+								if (pont == 0) { x = counter; break; }
+								counter++;
+							}
+						}
+						break;
+					case "]":
+						let point = 0;
+						let i = x;
+						if (r[p] != 0) {
+							while (i < input.length) {
+								if (input[i] == "[") point++;
+								if (input[i] == "]") point--;
+								if (point == 0) { x = i; break; }
+								i--;
+							}
+						}
+						break;
+				}
+				pointer = p;
+			}
+			return output;
+		}
+
+		if (displayCharacters)
+		console.log(`Loaded!
+				   \nLoaded ${setup.split('').filter(e => possibles.includes(e)).length} characters from setup.
+				   \nLoaded ${loop.split('').filter(e => possibles.includes(e)).length} characters from loop.
+				   \nLoaded ${setup.split('').filter(e => possibles.includes(e)).length + loop.split('').filter(e => possibles.includes(e)).length} characters in total.`);
+				   
+		get("out").innerHTML = run(0, setup);
+
+		setInterval(() => {
+			let set = run(0, loop);
+			if (set != "")
+				get("out").innerHTML = set;
+			if (inputStyle == "press")
+			for (let x = 0; x < keys.length; x++) {
+				if (keysUp[x]) keys[x] = false;
+			}
+		}, speed);
+
+	</script>
+</body>
+
+</html>
